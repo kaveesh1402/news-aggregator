@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: news-aggregator
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  datasource:
+    url: jdbc:h2:mem:newsaggdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+logging:
+  level:
+    root: INFO
+    com.newsagg: DEBUG
+
+ollama:
+  api-url: http://localhost:11434
+  model: llama2
+
+news:
+  fetch-interval-hours: 1
+  max-articles-per-fetch: 50
+  rss-feeds:
+    - name: "TechCrunch AI"
+      url: "https://techcrunch.com/category/artificial-intelligence/feed/"
+    - name: "The Verge AI"
+      url: "https://www.theverge.com/ai/rss/index.xml"
+    - name: "Wired AI"
+      url: "https://www.wired.com/feed/category/ai/latest/rss"
