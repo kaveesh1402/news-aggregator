@@ -42,7 +42,7 @@ export default function HomePage() {
         response = await newsAPI.getAllArticles(page, pageSize);
       }
 
-      setArticles(response.data.content);
+       setArticles(response.data.articles);
       setTotalPages(response.data.totalPages);
       setCurrentPage(page);
     } catch (err) {
@@ -134,10 +134,10 @@ export default function HomePage() {
               </div>
             </div>
 
-            {Object.entries(insights.categoryCounts).slice(0, 3).map(([category, count]) => (
-              <div key={category} className="bg-white rounded-lg shadow p-6">
-                <p className="text-gray-600 text-sm font-semibold">{category}</p>
-                <p className="text-3xl font-bold text-blue-600">{count}</p>
+            {insights.categoryCounts.slice(0, 3).map((item) => (
+              <div key={item.category} className="bg-white rounded-lg shadow p-6">
+                <p className="text-gray-600 text-sm font-semibold">{item.category}</p>
+                <p className="text-3xl font-bold text-blue-600">{item.count}</p>
               </div>
             ))}
           </div>

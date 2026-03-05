@@ -16,7 +16,7 @@
     <artifactId>news-aggregator</artifactId>
     <version>1.0.0</version>
     <name>AI News Aggregator</name>
-    <description>AI-Powered News Aggregator & Insights Platform</description>
+    <description>AI-Powered News Aggregator &amp; Insights Platform</description>
 
     <properties>
         <java.version>17</java.version>
