@@ -1,6 +1,7 @@
 package com.newsagg.dto;
 
 import lombok.*;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -16,4 +17,5 @@ public class InsightsDTO {
     private List<SentimentCountDTO> sentimentCounts;
     private String topCategory;
     private String dominantSentiment;
+    private LocalDateTime lastFetchedAt;
 }

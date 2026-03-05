@@ -191,6 +191,10 @@ public class NewsArticleService {
         newsArticleRepository.save(article);
     }
 
+    public boolean articleExistsByUrl(String url) {
+        return newsArticleRepository.findByUrl(url).isPresent();
+    }
+
     public List<NewsArticle> getUnprocessedArticles() {
         return newsArticleRepository.findUnprocessedArticles();
     }
@@ -225,6 +229,12 @@ public class NewsArticleService {
                 .map(e -> SentimentCountDTO.builder().sentiment(e.getKey().toString()).count(e.getValue()).build())
                 .collect(Collectors.toList());
 
+        LocalDateTime lastFetchedAt = allArticles.stream()
+                .map(NewsArticle::getFetchedAt)
+                .filter(Objects::nonNull)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
+
         return InsightsDTO.builder()
                 .totalArticles(total)
                 .processedArticles(processed)
@@ -233,6 +243,7 @@ public class NewsArticleService {
                 .sentimentCounts(sentimentList)
                 .topCategory(topCategory)
                 .dominantSentiment(dominantSentiment)
+                .lastFetchedAt(lastFetchedAt)
                 .build();
     }
 
@@ -262,6 +273,7 @@ public class NewsArticleService {
                 .summary(article.getSummary())
                 .source(article.getSource())
                 .url(article.getUrl())
+                .imageUrl(article.getImageUrl())
                 .category(article.getCategory())
                 .sentiment(article.getSentiment())
                 .publishedAt(article.getPublishedAt())

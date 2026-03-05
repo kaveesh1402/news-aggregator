@@ -4,12 +4,17 @@ import com.newsagg.config.NewsConfig;
 import com.newsagg.entity.NewsArticle;
 import com.newsagg.entity.SentimentType;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+import com.fasterxml.jackson.databind.JsonNode;
 
+import java.net.URI;
+import java.time.OffsetDateTime;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -18,75 +23,261 @@ public class NewsFetcherService {
     
     private final NewsConfig newsConfig;
     private final NewsArticleService newsArticleService;
+    private final RestTemplate restTemplate;
 
-    public NewsFetcherService(NewsConfig newsConfig, NewsArticleService newsArticleService) {
+    public NewsFetcherService(
+            NewsConfig newsConfig,
+            NewsArticleService newsArticleService,
+            RestTemplate restTemplate) {
         this.newsConfig = newsConfig;
         this.newsArticleService = newsArticleService;
+        this.restTemplate = restTemplate;
     }
 
     @Scheduled(fixedDelayString = "3600000")
-    @Transactional
     public void fetchNewsFromRSSFeeds() {
         log.info("Starting scheduled news fetch");
-        
-        // Create some sample articles for testing
-        createSampleArticles();
-        
+
+        fetchFromConfiguredApi();
         processUnprocessedArticles();
         
         log.info("Completed scheduled news fetch");
     }
 
-    @Transactional
     public void manualFetchNews() {
         log.info("Manual news fetch triggered");
-        createSampleArticles();
+        fetchFromConfiguredApi();
         processUnprocessedArticles();
     }
 
-    private void createSampleArticles() {
-        String[] titles = {
-            "GPT-4 Shows Breakthrough Performance in Complex Reasoning Tasks",
-            "New AI Startup Raises $100M for Language Model Development",
-            "Researchers Develop Advanced Robotics System Using Deep Learning",
-            "EU Implements New AI Regulation Framework",
-            "Open Source Tool Makes AI Development Accessible to Everyone"
-        };
-        
-        String[] contents = {
-            "OpenAI's latest GPT-4 model demonstrates unprecedented performance in complex reasoning and problem-solving tasks. The model shows significant improvements in code generation, mathematical reasoning, and cross-domain knowledge application.",
-            "A new AI startup has successfully raised $100 million in Series B funding to develop next-generation language models. The company aims to create more efficient and practical AI solutions for enterprise applications.",
-            "Researchers at leading universities have developed a new robotics system that leverages deep learning and computer vision to perform complex manipulation tasks with human-like precision and adaptability.",
-            "The European Union has finalized its comprehensive AI regulation framework, setting new standards for AI safety, transparency, and accountability. Companies must comply with these regulations by the end of the year.",
-            "A new open-source tool has been released that significantly lowers the barriers to entry for AI development. The tool abstracts complex machine learning concepts and provides user-friendly interfaces for model training and deployment."
-        };
-        
-        String[] sources = {
-            "TechCrunch AI",
-            "The Verge AI",
-            "Wired AI",
-            "TechCrunch AI",
-            "The Verge AI"
-        };
-        
-        for (int i = 0; i < titles.length; i++) {
-            NewsArticle article = NewsArticle.builder()
-                    .title(titles[i])
-                    .content(contents[i])
-                    .url("https://example.com/article-" + i)
-                    .source(sources[i])
-                    .publishedAt(LocalDateTime.now().minusHours(i))
-                    .sentiment(SentimentType.NEUTRAL)
-                    .category("General")
-                    .processed(false)
-                    .build();
-            
-            try {
-                newsArticleService.saveArticle(article);
-            } catch (Exception e) {
-                log.debug("Article already exists or error occurred", e);
+    private void fetchFromConfiguredApi() {
+        NewsConfig.Api api = newsConfig.getApi();
+        if (api == null || !StringUtils.hasText(api.getProvider())) {
+            log.warn("No news API provider configured. Skipping external fetch.");
+            return;
+        }
+
+        if ("thenewsapi".equalsIgnoreCase(api.getProvider())) {
+            fetchFromTheNewsApi(api);
+            return;
+        }
+
+        log.warn("Unsupported news API provider '{}'. Skipping external fetch.", api.getProvider());
+    }
+
+    private void fetchFromTheNewsApi(NewsConfig.Api api) {
+        if (!StringUtils.hasText(api.getToken())) {
+            log.warn("THENEWSAPI token missing. Set THENEWSAPI_TOKEN to enable real news ingestion.");
+            return;
+        }
+
+        try {
+            int inserted = 0;
+            int pagesToFetch = valueOrDefault(api.getPagesToFetch(), 3);
+
+            for (int page = 1; page <= pagesToFetch; page++) {
+                URI uri = UriComponentsBuilder
+                        .fromUriString(api.getBaseUrl())
+                        .queryParam("api_token", api.getToken())
+                        .queryParam("locale", valueOrDefault(api.getLocale(), "us"))
+                        .queryParam("language", valueOrDefault(api.getLanguage(), "en"))
+                        .queryParam("categories", valueOrDefault(api.getCategories(), "tech"))
+                        .queryParam("limit", valueOrDefault(newsConfig.getMaxArticlesPerFetch(), 20))
+                        .queryParam("page", page)
+                        .build(true)
+                        .toUri();
+
+                ResponseEntity<JsonNode> response = restTemplate.getForEntity(uri, JsonNode.class);
+                JsonNode body = response.getBody();
+                JsonNode data = body != null ? body.path("data") : null;
+
+                if (data == null || !data.isArray() || data.isEmpty()) {
+                    log.info("No more data from TheNewsAPI at page {}", page);
+                    break;
+                }
+
+                for (JsonNode item : data) {
+                    String url = textOrNull(item, "url");
+                    if (!StringUtils.hasText(url) || newsArticleService.articleExistsByUrl(url)) {
+                        continue;
+                    }
+
+                    String title = valueOrDefault(textOrNull(item, "title"), "Untitled");
+                    String content = buildContent(item, title, url);
+                    String source = extractSource(item);
+                    String category = extractCategory(item);
+                    String imageUrl = firstNonBlank(
+                            textOrNull(item, "image_url"),
+                            textOrNull(item, "imageUrl"));
+
+                    NewsArticle article = NewsArticle.builder()
+                            .title(title)
+                            .content(content)
+                            .url(url)
+                            .source(valueOrDefault(source, "TheNewsAPI"))
+                            .imageUrl(imageUrl)
+                            .publishedAt(parsePublishedAt(textOrNull(item, "published_at")))
+                            .sentiment(SentimentType.NEUTRAL)
+                            .category(valueOrDefault(category, "General"))
+                            .processed(false)
+                            .build();
+
+                    try {
+                        newsArticleService.saveArticle(article);
+                        inserted++;
+                    } catch (Exception e) {
+                        log.warn("Skipping article due to save failure. url={}", url, e);
+                    }
+                }
+            }
+
+            log.info("Fetched {} new articles from TheNewsAPI across {} pages", inserted, pagesToFetch);
+        } catch (Exception e) {
+            log.error("Failed to fetch articles from TheNewsAPI", e);
+        }
+    }
+
+    private String extractSource(JsonNode item) {
+        if (item == null) {
+            return null;
+        }
+        JsonNode sourceNode = item.path("source");
+        if (sourceNode.isTextual()) {
+            return sourceNode.asText();
+        }
+        if (sourceNode.isObject()) {
+            String sourceName = textOrNull(sourceNode, "name");
+            if (StringUtils.hasText(sourceName)) {
+                return sourceName;
             }
         }
+        return textOrNull(item, "source_name");
+    }
+
+    private String extractCategory(JsonNode item) {
+        if (item == null) {
+            return null;
+        }
+        JsonNode categories = item.path("categories");
+        if (categories.isArray() && !categories.isEmpty()) {
+            return categories.get(0).asText();
+        }
+        return textOrNull(item, "category");
+    }
+
+    private LocalDateTime parsePublishedAt(String publishedAt) {
+        if (!StringUtils.hasText(publishedAt)) {
+            return LocalDateTime.now();
+        }
+
+        try {
+            return OffsetDateTime.parse(publishedAt).toLocalDateTime();
+        } catch (Exception ignored) {
+            try {
+                return LocalDateTime.parse(publishedAt);
+            } catch (Exception ignoredAgain) {
+                return LocalDateTime.now();
+            }
+        }
+    }
+
+    private String textOrNull(JsonNode node, String field) {
+        if (node == null || !node.hasNonNull(field)) {
+            return null;
+        }
+        String value = node.get(field).asText();
+        return StringUtils.hasText(value) ? value : null;
+    }
+
+    private String buildContent(JsonNode item, String title, String url) {
+        String description = textOrNull(item, "description");
+        String snippet = textOrNull(item, "snippet");
+        String keyword = textOrNull(item, "keywords");
+
+        StringBuilder content = new StringBuilder();
+        appendParagraph(content, description);
+        appendParagraph(content, snippet);
+
+        if (StringUtils.hasText(keyword)) {
+            appendParagraph(content, "Keywords: " + keyword);
+        }
+
+        if (content.length() < 180) {
+            appendParagraph(content, "Headline: " + valueOrDefault(title, "Untitled"));
+            appendParagraph(content, "Source link: " + valueOrDefault(url, ""));
+        }
+
+        if (!StringUtils.hasText(content.toString())) {
+            return "No content available.";
+        }
+
+        return content.toString().trim();
+    }
+
+    private void appendParagraph(StringBuilder builder, String paragraph) {
+        if (!StringUtils.hasText(paragraph)) {
+            return;
+        }
+
+        String cleaned = normalizeSnippet(paragraph);
+        if (!StringUtils.hasText(cleaned)) {
+            return;
+        }
+
+        String builderText = builder.toString().toLowerCase();
+        String cleanedLower = cleaned.toLowerCase();
+        if (builderText.contains(cleanedLower) || (builder.length() > 0 && cleanedLower.contains(builderText))) {
+            return;
+        }
+
+        if (builder.length() > 0) {
+            builder.append("\n\n");
+        }
+        builder.append(cleaned);
+    }
+
+    private String normalizeSnippet(String raw) {
+        if (!StringUtils.hasText(raw)) {
+            return null;
+        }
+
+        String cleaned = raw.replaceAll("\\s+", " ").trim();
+        if (!StringUtils.hasText(cleaned)) {
+            return null;
+        }
+
+        // Avoid abrupt endings by trimming to the last complete sentence if available.
+        int lastStop = Math.max(cleaned.lastIndexOf('.'),
+                Math.max(cleaned.lastIndexOf('!'), cleaned.lastIndexOf('?')));
+
+        if (cleaned.endsWith("...") || cleaned.endsWith("..")) {
+            if (lastStop > 20 && lastStop < cleaned.length() - 1) {
+                cleaned = cleaned.substring(0, lastStop + 1).trim();
+            }
+        }
+
+        if (!cleaned.endsWith(".") && !cleaned.endsWith("!") && !cleaned.endsWith("?")) {
+            cleaned = cleaned + ".";
+        }
+
+        return cleaned;
+    }
+
+    private String valueOrDefault(String value, String fallback) {
+        return StringUtils.hasText(value) ? value : fallback;
+    }
+
+    private String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (StringUtils.hasText(value)) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    private int valueOrDefault(Integer value, int fallback) {
+        return value != null ? value : fallback;
     }
 
     private void processUnprocessedArticles() {

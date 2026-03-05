@@ -65,6 +65,20 @@ export default function ArticleDetailPage() {
     );
   }
 
+  const publishedValue = article.publishedAt || article.publishedDate;
+  const publishedDate = publishedValue ? new Date(publishedValue) : null;
+  const hasValidDate = publishedDate && !Number.isNaN(publishedDate.getTime());
+  const publishedLong = hasValidDate
+    ? publishedDate.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : 'Unknown date';
+  const publishedShort = hasValidDate
+    ? publishedDate.toLocaleDateString()
+    : 'Unknown date';
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -88,11 +102,7 @@ export default function ArticleDetailPage() {
                 </h1>
                 <div className="flex items-center gap-4 flex-wrap">
                   <span className="text-gray-600">
-                    {new Date(article.publishedDate).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
+                    {publishedLong}
                   </span>
                   <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm font-semibold">
                     {article.category}
@@ -116,10 +126,25 @@ export default function ArticleDetailPage() {
 
           <hr className="my-8" />
 
+          {article.imageUrl && (
+            <div className="mb-8 overflow-hidden rounded-xl border border-gray-200">
+              <img
+                src={article.imageUrl}
+                alt={article.title}
+                className="w-full max-h-[460px] object-cover"
+                loading="lazy"
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              />
+            </div>
+          )}
+
           {/* Summary */}
           {article.summary && (
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Summary</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">AI Summary</h2>
+              <p className="text-sm text-blue-700 mb-4">
+                Concise model-generated overview of the article.
+              </p>
               <p className="text-lg text-gray-700 leading-relaxed bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
                 {article.summary}
               </p>
@@ -128,8 +153,11 @@ export default function ArticleDetailPage() {
 
           {/* Content */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Full Content</h2>
-            <div className="prose prose-lg text-gray-700 whitespace-pre-wrap max-w-none">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Source Excerpt</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Raw source text (can be truncated). Open the original link for complete details.
+            </p>
+            <div className="prose prose-lg text-gray-700 whitespace-pre-wrap max-w-none bg-gray-50 border border-gray-200 rounded-lg p-4">
               {article.content}
             </div>
           </div>
@@ -150,7 +178,7 @@ export default function ArticleDetailPage() {
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-sm text-gray-600 font-semibold">Published</p>
               <p className="text-lg font-bold text-gray-900">
-                {new Date(article.publishedDate).toLocaleDateString()}
+                {publishedShort}
               </p>
             </div>
           </div>

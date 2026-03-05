@@ -1,34 +1,33 @@
 import React from 'react';
-import { ThumbsUp, Minus, ThumbsDown } from 'lucide-react';
+import { Circle } from 'lucide-react';
 
 export default function SentimentBadge({ sentiment }) {
   const sentimentConfig = {
     POSITIVE: {
-      bg: 'bg-green-100',
-      text: 'text-green-800',
-      icon: ThumbsUp,
+      bg: 'bg-emerald-50 border-emerald-200',
+      text: 'text-emerald-800',
+      dot: 'fill-emerald-500 text-emerald-500',
       label: 'Positive',
     },
     NEUTRAL: {
-      bg: 'bg-gray-100',
-      text: 'text-gray-800',
-      icon: Minus,
+      bg: 'bg-slate-100 border-slate-200',
+      text: 'text-slate-700',
+      dot: 'fill-slate-400 text-slate-400',
       label: 'Neutral',
     },
     NEGATIVE: {
-      bg: 'bg-red-100',
-      text: 'text-red-800',
-      icon: ThumbsDown,
+      bg: 'bg-rose-50 border-rose-200',
+      text: 'text-rose-800',
+      dot: 'fill-rose-500 text-rose-500',
       label: 'Negative',
     },
   };
 
   const config = sentimentConfig[sentiment] || sentimentConfig.NEUTRAL;
-  const Icon = config.icon;
 
   return (
-    <div className={`${config.bg} ${config.text} px-3 py-1 rounded-full flex items-center gap-1 text-sm font-semibold whitespace-nowrap`}>
-      <Icon size={14} />
+    <div className={`${config.bg} ${config.text} border px-2.5 py-1 rounded-full flex items-center gap-1.5 text-xs font-bold whitespace-nowrap uppercase tracking-wide`}>
+      <Circle size={10} className={config.dot} />
       {config.label}
     </div>
   );

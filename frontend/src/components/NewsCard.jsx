@@ -1,9 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ExternalLink, Trash2 } from 'lucide-react';
+import { ExternalLink, Trash2, Clock3 } from 'lucide-react';
 import SentimentBadge from './SentimentBadge';
 
 export default function NewsCard({ article, onDelete }) {
+  const publishedValue = article.publishedAt || article.publishedDate;
+  const publishedDate = publishedValue ? new Date(publishedValue) : null;
+  const publishedText =
+    publishedDate && !Number.isNaN(publishedDate.getTime())
+      ? publishedDate.toLocaleDateString()
+      : 'Unknown date';
+
   const handleDelete = (e) => {
     e.preventDefault();
     if (window.confirm('Delete this article?')) {
@@ -13,40 +20,57 @@ export default function NewsCard({ article, onDelete }) {
 
   return (
     <Link to={`/article/${article.id}`}>
-      <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition p-6 h-full cursor-pointer border border-gray-200">
-        <div className="flex items-start justify-between gap-4 mb-3">
-          <div>
-            <h3 className="text-lg font-bold text-gray-900 line-clamp-2 hover:text-blue-600">
-              {article.title}
-            </h3>
-            <p className="text-sm text-gray-600 mt-1">
-              {new Date(article.publishedDate).toLocaleDateString()}
-            </p>
+      <article className="news-panel rounded-xl p-6 h-full cursor-pointer transition duration-300 hover:-translate-y-0.5 hover:shadow-xl news-entrance">
+        {article.imageUrl && (
+          <div className="mb-4 overflow-hidden rounded-lg border border-slate-200">
+            <img
+              src={article.imageUrl}
+              alt={article.title}
+              className="h-48 w-full object-cover transition duration-300 hover:scale-[1.02]"
+              loading="lazy"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
           </div>
+        )}
+
+        <div className="flex items-center justify-between mb-3">
+          <p className="news-kicker text-[var(--news-accent)]">{article.category || 'General'}</p>
           <SentimentBadge sentiment={article.sentiment} />
         </div>
 
-        <p className="text-gray-700 line-clamp-3 mb-4">
+        <div className="mb-4">
+          <h3 className="text-2xl font-black leading-tight text-slate-900 line-clamp-2 hover:text-[var(--news-accent)] transition">
+            {article.title}
+          </h3>
+          <p className="mt-2 text-sm text-slate-500 inline-flex items-center gap-2">
+            <Clock3 size={14} />
+            {publishedText} | {article.source || 'Wire Source'}
+          </p>
+        </div>
+
+        <p className="text-slate-700 line-clamp-3 mb-5 text-[1.02rem] leading-relaxed">
           {article.summary || article.content}
         </p>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between border-t border-slate-200 pt-4">
+          <span className="text-xs font-bold tracking-wide uppercase text-slate-500">
+            Open detailed coverage
+          </span>
           <div className="flex items-center gap-2">
-            <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded">
-              {article.category}
+            <span className="inline-flex items-center gap-1.5 text-slate-500 text-sm font-semibold">
+              <ExternalLink size={15} />
+              Source
             </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <ExternalLink size={16} className="text-gray-500" />
             <button
               onClick={handleDelete}
-              className="text-red-500 hover:text-red-700 transition"
+              className="rounded-md border border-rose-200 bg-rose-50 p-1.5 text-rose-600 hover:bg-rose-100 transition"
+              aria-label="Delete article"
             >
-              <Trash2 size={16} />
+              <Trash2 size={15} />
             </button>
           </div>
         </div>
-      </div>
+      </article>
     </Link>
   );
 }

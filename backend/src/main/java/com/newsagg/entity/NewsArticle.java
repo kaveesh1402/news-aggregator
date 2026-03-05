@@ -38,6 +38,9 @@ public class NewsArticle {
     @Column(nullable = false)
     private String source;
 
+    @Column
+    private String imageUrl;
+
     @Column(nullable = false)
     private LocalDateTime publishedAt;
 

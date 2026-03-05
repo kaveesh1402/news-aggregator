@@ -7,7 +7,7 @@ import java.util.*;
 @Slf4j
 @Service
 public class EmbeddingService {
-    
+
     private static final int EMBEDDING_DIMENSION = 384;
 
     public double[] generateEmbedding(String text) {
@@ -39,21 +39,21 @@ public class EmbeddingService {
     private double[] generateMockEmbedding(String text) {
         double[] embedding = new double[EMBEDDING_DIMENSION];
         Random random = new Random(text.hashCode());
-        
+
         for (int i = 0; i < EMBEDDING_DIMENSION; i++) {
             embedding[i] = random.nextGaussian();
         }
-        
+
         double norm = 0.0;
         for (double v : embedding) {
             norm += v * v;
         }
         norm = Math.sqrt(norm);
-        
+
         for (int i = 0; i < EMBEDDING_DIMENSION; i++) {
             embedding[i] /= norm;
         }
-        
+
         return embedding;
     }
 
@@ -72,10 +72,10 @@ public class EmbeddingService {
         if (embeddingStr == null || embeddingStr.isEmpty()) {
             return generateMockEmbedding("");
         }
-        
+
         String[] parts = embeddingStr.split(",");
         double[] embedding = new double[parts.length];
-        
+
         try {
             for (int i = 0; i < parts.length; i++) {
                 embedding[i] = Double.parseDouble(parts[i].trim());
@@ -83,7 +83,7 @@ public class EmbeddingService {
         } catch (NumberFormatException e) {
             return generateMockEmbedding("");
         }
-        
+
         return embedding;
     }
 }

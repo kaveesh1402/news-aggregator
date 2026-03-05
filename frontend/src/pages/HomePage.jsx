@@ -4,7 +4,7 @@ import NewsCard from '../components/NewsCard';
 import SearchBar from '../components/SearchBar';
 import CategoryFilter from '../components/CategoryFilter';
 import Pagination from '../components/Pagination';
-import { RefreshCw, AlertCircle, TrendingUp } from 'lucide-react';
+import { RefreshCw, AlertCircle, Newspaper, Clock3, Activity } from 'lucide-react';
 
 export default function HomePage() {
   const [articles, setArticles] = useState([]);
@@ -19,7 +19,6 @@ export default function HomePage() {
   const [searchType, setSearchType] = useState('keyword');
   const pageSize = 10;
 
-  // Fetch articles
   const fetchArticles = async (page = 0) => {
     setLoading(true);
     setError(null);
@@ -27,22 +26,18 @@ export default function HomePage() {
       let response;
 
       if (searchQuery) {
-        // Perform search
         response = searchType === 'semantic'
           ? await newsAPI.semanticSearch(searchQuery, page, pageSize)
           : await newsAPI.searchArticles(searchQuery, page, pageSize);
       } else if (selectedCategory) {
-        // Filter by category
         response = await newsAPI.getArticlesByCategory(selectedCategory, page, pageSize);
       } else if (selectedSentiment) {
-        // Filter by sentiment
         response = await newsAPI.getArticlesBySentiment(selectedSentiment, page, pageSize);
       } else {
-        // Get all articles
         response = await newsAPI.getAllArticles(page, pageSize);
       }
 
-       setArticles(response.data.articles);
+      setArticles(response.data.articles);
       setTotalPages(response.data.totalPages);
       setCurrentPage(page);
     } catch (err) {
@@ -53,7 +48,6 @@ export default function HomePage() {
     }
   };
 
-  // Fetch insights
   const fetchInsights = async () => {
     try {
       const response = await insightsAPI.getInsights();
@@ -63,13 +57,11 @@ export default function HomePage() {
     }
   };
 
-  // Initial load
   useEffect(() => {
     fetchArticles(0);
     fetchInsights();
   }, []);
 
-  // Fetch when filters/search change
   useEffect(() => {
     fetchArticles(0);
   }, [selectedCategory, selectedSentiment, searchQuery, searchType]);
@@ -118,75 +110,113 @@ export default function HomePage() {
     }
   };
 
+  const formatLastFetched = (value) => {
+    if (!value) return 'Never';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Unknown';
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Dashboard Stats */}
-        {insights && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm font-semibold">Total Articles</p>
-                  <p className="text-3xl font-bold text-blue-600">{insights.totalArticles}</p>
-                </div>
-                <TrendingUp className="text-blue-400" size={32} />
+    <div className="min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <section className="news-panel rounded-xl overflow-hidden mb-6 news-entrance">
+          <div className="bg-slate-900 text-slate-100 px-4 py-2 grid grid-cols-[auto_1fr] items-center gap-3 rounded-t-[18px] overflow-hidden">
+            <span className="news-kicker rounded-md bg-[var(--news-accent)] px-2.5 py-1 text-[10px] shadow-sm">Breaking</span>
+            <div className="min-w-0 overflow-hidden whitespace-nowrap text-sm font-semibold">
+              <div className="ticker-scroll">
+                <span className="inline-block pr-14">
+                  AI regulation updates | New model releases | Startup funding rounds | Robotics deployments |
+                </span>
+                <span className="inline-block pr-14">
+                  AI regulation updates | New model releases | Startup funding rounds | Robotics deployments |
+                </span>
               </div>
             </div>
-
-            {insights.categoryCounts.slice(0, 3).map((item) => (
-              <div key={item.category} className="bg-white rounded-lg shadow p-6">
-                <p className="text-gray-600 text-sm font-semibold">{item.category}</p>
-                <p className="text-3xl font-bold text-blue-600">{item.count}</p>
-              </div>
-            ))}
           </div>
-        )}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
+            <div className="p-5 border-b md:border-b-0 md:border-r border-slate-200">
+              <p className="news-kicker text-slate-500 mb-1">Coverage</p>
+              <p className="text-3xl font-black text-slate-900">{insights?.totalArticles ?? 0}</p>
+              <p className="text-sm text-slate-500">Tracked stories in database</p>
+            </div>
+            <div className="p-5 border-b md:border-b-0 md:border-r border-slate-200">
+              <p className="news-kicker text-slate-500 mb-1">Newsroom Pulse</p>
+              <p className="text-lg font-black text-slate-900">{insights?.topCategory || 'General'}</p>
+              <p className="text-sm text-slate-500">Dominant category</p>
+            </div>
+            <div className="p-5">
+              <p className="news-kicker text-slate-500 mb-1">Last Pull</p>
+              <p className="text-base font-bold text-slate-900">{formatLastFetched(insights?.lastFetchedAt)}</p>
+              <p className="text-sm text-slate-500">Latest ingestion cycle</p>
+            </div>
+          </div>
+        </section>
 
-        {/* Search Bar */}
         <SearchBar onSearch={handleSearch} onSearchTypeChange={handleSearchTypeChange} />
 
-        {/* Error Message */}
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-8 flex items-center gap-2">
+          <div className="news-panel rounded-xl border-rose-300 bg-rose-50 text-rose-800 px-4 py-3 mb-6 flex items-center gap-2">
             <AlertCircle size={20} />
             {error}
           </div>
         )}
 
-        {/* Main Content */}
+        <div className="sticky top-4 z-30 mb-6 py-1 news-entrance">
+          <div className="news-panel rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-3 text-slate-700">
+              <span className="rounded bg-slate-900 text-white p-1.5">
+                <Clock3 size={14} />
+              </span>
+              <p className="text-sm font-semibold">
+                Last fetched: <span className="text-slate-900 font-bold">{formatLastFetched(insights?.lastFetchedAt)}</span>
+              </p>
+            </div>
+            <button
+              onClick={handleManualFetch}
+              disabled={loading}
+              className="bg-[var(--news-accent)] text-white px-4 py-2.5 rounded-md hover:bg-[var(--news-accent-dark)] transition font-bold flex items-center justify-center gap-2 disabled:opacity-50 shadow"
+            >
+              <RefreshCw size={17} className={loading ? 'animate-spin' : ''} />
+              Refresh Feed
+            </button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar Filters */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 lg:sticky lg:top-6 lg:self-start">
             <CategoryFilter
               onCategoryChange={handleCategoryChange}
               onSentimentChange={handleSentimentChange}
               selectedCategory={selectedCategory}
               selectedSentiment={selectedSentiment}
             />
-            <button
-              onClick={handleManualFetch}
-              disabled={loading}
-              className="w-full mt-6 bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-              Fetch News
-            </button>
           </div>
 
-          {/* Articles Grid */}
           <div className="lg:col-span-3">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-2xl font-black text-slate-900">Top Stories</h2>
+              <div className="text-sm font-semibold text-slate-500 inline-flex items-center gap-2">
+                <Activity size={14} />
+                {articles.length} articles in view
+              </div>
+            </div>
+
             {loading ? (
-              <div className="text-center py-12">
-                <div className="inline-block">
-                  <RefreshCw className="animate-spin text-blue-600" size={32} />
-                </div>
-                <p className="text-gray-600 mt-4">Loading articles...</p>
+              <div className="news-panel rounded-xl p-10 text-center">
+                <RefreshCw className="animate-spin text-[var(--news-accent)] mx-auto" size={32} />
+                <p className="text-slate-600 mt-4 font-semibold">Refreshing newsroom feed...</p>
               </div>
             ) : articles.length === 0 ? (
-              <div className="bg-white rounded-lg shadow p-8 text-center">
-                <AlertCircle className="mx-auto text-gray-400 mb-4" size={48} />
-                <p className="text-gray-600">No articles found. Try a different search or filter.</p>
+              <div className="news-panel rounded-xl p-10 text-center">
+                <Newspaper className="mx-auto text-slate-400 mb-4" size={48} />
+                <p className="text-slate-600 font-semibold">No stories found for current filters.</p>
               </div>
             ) : (
               <>

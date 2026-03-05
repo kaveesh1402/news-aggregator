@@ -1,0 +1,31 @@
+Backend APIs (NewsAgg)
+                                                                                                                                                         
+  - GET http://localhost:8080/api/health                                                                                                                 
+  - GET http://localhost:8080/api/insights                                                                                                               
+  - POST http://localhost:8080/api/fetch-news                                                                                                            
+  - GET http://localhost:8080/api/news?page=0&size=10                                                                                                    
+  - GET http://localhost:8080/api/news/{id}                                                                                                              
+  - GET http://localhost:8080/api/news/search?q=AI&page=0&size=10                                                                                        
+  - GET http://localhost:8080/api/news/semantic-search?query=latest%20llm&page=0&size=10                                                                 
+  - GET http://localhost:8080/api/news/category/{category}?page=0&size=10                                                                                
+  - GET http://localhost:8080/api/news/sentiment/{sentiment}?page=0&size=10                                                                              
+  - GET http://localhost:8080/api/news/{id}/recommendations?size=5                                                                                       
+  - DELETE http://localhost:8080/api/news/{id}
+                                                                                                                                                         
+  Ollama Local APIs                                                                                                                                      
+                                                                                                                                                         
+  - GET http://localhost:11434/api/tags                                                                                                                  
+  - POST http://localhost:11434/api/generate                                                                                                             
+                                                                                                                                                         
+  Sample body for /api/generate:                                                                                                                         
+                                                                                                                                                         
+  {                                                                                                                                                      
+    "model": "llama2",                                                                                                                                   
+    "prompt": "Summarize this in 2 lines: ...",                                                                                                          
+    "stream": false                                                                                                                                      
+  }                                                                                                                                                      
+                                                                                                                                                         
+  External API used by backend                                                                                                                           
+                                                                                                                                                         
+  - GET https://api.thenewsapi.com/v1/news/top                                                                                                           
+    Params used by your app: api_token, locale, language, categories, limit, page

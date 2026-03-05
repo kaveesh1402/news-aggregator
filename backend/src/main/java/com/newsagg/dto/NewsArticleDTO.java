@@ -18,6 +18,7 @@ public class NewsArticleDTO {
     private SentimentType sentiment;
     private String url;
     private String source;
+    private String imageUrl;
     private LocalDateTime publishedAt;
     private LocalDateTime fetchedAt;
     private Double relevanceScore;

@@ -13,6 +13,7 @@ public class NewsConfig {
     private Integer fetchIntervalHours;
     private Integer maxArticlesPerFetch;
     private List<RssFeed> rssFeeds;
+    private Api api;
 
     @Getter
     @Setter
@@ -21,5 +22,19 @@ public class NewsConfig {
     public static class RssFeed {
         private String name;
         private String url;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Api {
+        private String provider;
+        private String baseUrl;
+        private String token;
+        private String locale;
+        private String language;
+        private String categories;
+        private Integer pagesToFetch;
     }
 }

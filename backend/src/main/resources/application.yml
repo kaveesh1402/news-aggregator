@@ -31,6 +31,14 @@ ollama:
 news:
   fetch-interval-hours: 1
   max-articles-per-fetch: 50
+  api:
+    provider: thenewsapi
+    base-url: https://api.thenewsapi.com/v1/news/top
+    token: ${THENEWSAPI_TOKEN:}
+    locale: us,gb,ca,au
+    language: en
+    categories: tech,business,science
+    pages-to-fetch: 3
   rss-feeds:
     - name: "TechCrunch AI"
       url: "https://techcrunch.com/category/artificial-intelligence/feed/"
