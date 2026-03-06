@@ -78,7 +78,6 @@ h4 {
   border: 1px solid var(--news-border);
   border-radius: var(--news-radius);
   box-shadow: var(--news-shadow);
-  position: relative;
 }
 
 .news-panel-soft {
@@ -101,7 +100,7 @@ h4 {
 .news-shell {
   max-width: 1320px;
   margin: 0 auto;
-  padding: 0 1.1rem;
+  padding: 0 1rem;
 }
 
 .news-kicker {
@@ -112,8 +111,8 @@ h4 {
 }
 
 .news-section-title {
-  font-size: clamp(1.5rem, 2.3vw, 2rem);
-  line-height: 1.1;
+  font-size: clamp(1.45rem, 2.3vw, 2rem);
+  line-height: 1.12;
   font-weight: 900;
 }
 
@@ -124,7 +123,11 @@ h4 {
 }
 
 .news-entrance {
-  animation: newsroom-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: newsroom-rise 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.route-enter {
+  animation: route-enter 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .ambient-orb {
@@ -146,11 +149,11 @@ h4 {
   border-radius: 12px;
   font-weight: 700;
   box-shadow: 0 8px 24px rgba(217, 72, 34, 0.35);
-  transition: transform 160ms ease, box-shadow 220ms ease, filter 220ms ease;
+  transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 320ms cubic-bezier(0.16, 1, 0.3, 1), filter 320ms ease;
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px) scale(1.01);
+  transform: translateY(-1px);
   filter: brightness(1.03);
   box-shadow: 0 14px 30px rgba(217, 72, 34, 0.28);
 }
@@ -162,12 +165,12 @@ input:focus-visible {
 }
 
 .btn-ghost {
-  border: 1px solid var(--news-border-strong);
+  border: 1px solid var(--news-border);
   background: rgba(255, 255, 255, 0.78);
   color: #12315f;
   border-radius: 12px;
   font-weight: 600;
-  transition: all 180ms ease;
+  transition: all 260ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-ghost:hover {
@@ -176,21 +179,21 @@ input:focus-visible {
 }
 
 .surface-chip {
-  border: 1px solid #d2def0;
+  border: 1px solid #cddcf2;
   background: rgba(255, 255, 255, 0.72);
   border-radius: 999px;
-  padding: 0.32rem 0.82rem;
+  padding: 0.3rem 0.8rem;
   font-size: 0.77rem;
   font-weight: 700;
   color: #214571;
 }
 
 .hover-lift {
-  transition: transform 220ms ease, box-shadow 260ms ease;
+  transition: transform 360ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 420ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .hover-lift:hover {
-  transform: translateY(-3px) scale(1.004);
+  transform: translateY(-3px);
   box-shadow: var(--news-shadow-heavy);
 }
 
@@ -202,7 +205,7 @@ input:focus-visible {
   display: inline-flex;
   align-items: center;
   width: max-content;
-  animation: ticker-scroll 26s linear infinite;
+  animation: ticker-scroll 34s linear infinite;
 }
 
 .headline-gradient {
@@ -212,22 +215,65 @@ input:focus-visible {
   color: transparent;
 }
 
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #e8edf5;
+  border-radius: 10px;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+  animation: skeleton-shimmer 1.75s infinite;
+}
+
+.mini-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.mini-chart-row {
+  display: grid;
+  grid-template-columns: 88px 1fr auto;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.78rem;
+}
+
+.mini-chart-track {
+  height: 7px;
+  border-radius: 999px;
+  background: #e6ebf3;
+  overflow: hidden;
+}
+
+.mini-chart-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(120deg, #0e3f7a, #d94822);
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #eef3fb;
+  background: #f1f1f1;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #b2c4df;
+  background: #888;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94abd1;
+  background: #555;
 }
 
 @keyframes newsroom-rise {
@@ -241,9 +287,28 @@ input:focus-visible {
   }
 }
 
+@keyframes route-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .news-entrance,
-  .ticker-scroll {
+  .ticker-scroll,
+  .route-enter,
+  .skeleton::after {
     animation: none;
   }
 

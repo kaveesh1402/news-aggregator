@@ -6,6 +6,52 @@ import CategoryFilter from '../components/CategoryFilter';
 import Pagination from '../components/Pagination';
 import { RefreshCw, AlertCircle, Newspaper, Clock3, Activity, Layers3, Globe2, Smile, Frown, Minus } from 'lucide-react';
 
+function FilterSkeleton() {
+  return (
+    <div className="news-panel news-panel-soft rounded-xl p-6 h-fit">
+      <div className="skeleton h-6 w-28 mb-5" />
+      <div className="skeleton h-4 w-24 mb-3" />
+      <div className="space-y-2 mb-6">
+        <div className="skeleton h-10 w-full" />
+        <div className="skeleton h-10 w-full" />
+        <div className="skeleton h-10 w-full" />
+        <div className="skeleton h-10 w-full" />
+      </div>
+      <div className="skeleton h-4 w-28 mb-3" />
+      <div className="space-y-2">
+        <div className="skeleton h-10 w-full" />
+        <div className="skeleton h-10 w-full" />
+        <div className="skeleton h-10 w-full" />
+      </div>
+    </div>
+  );
+}
+
+function ArticleSkeleton() {
+  return (
+    <article className="news-panel news-panel-soft rounded-xl p-5 sm:p-6">
+      <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-5">
+        <div className="skeleton h-52 md:h-[210px] w-full rounded-xl" />
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <div className="skeleton h-4 w-20" />
+            <div className="skeleton h-6 w-20 rounded-full" />
+          </div>
+          <div className="skeleton h-8 w-[88%] mb-2" />
+          <div className="skeleton h-8 w-[72%] mb-3" />
+          <div className="skeleton h-4 w-48 mb-4" />
+          <div className="space-y-2 mb-5">
+            <div className="skeleton h-4 w-full" />
+            <div className="skeleton h-4 w-full" />
+            <div className="skeleton h-4 w-[82%]" />
+          </div>
+          <div className="skeleton h-9 w-full" />
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default function HomePage() {
   const [articles, setArticles] = useState([]);
   const [insights, setInsights] = useState(null);
@@ -25,6 +71,14 @@ export default function HomePage() {
     if (key) acc[key] = item.count || 0;
     return acc;
   }, {});
+  const sentimentSeries = [
+    { key: 'POSITIVE', label: 'Positive', color: 'linear-gradient(120deg, #059669, #34d399)' },
+    { key: 'NEUTRAL', label: 'Neutral', color: 'linear-gradient(120deg, #64748b, #94a3b8)' },
+    { key: 'NEGATIVE', label: 'Negative', color: 'linear-gradient(120deg, #b45309, #f59e0b)' },
+  ];
+  const sentimentTotal = sentimentSeries.reduce((sum, item) => sum + (sentimentCounts[item.key] || 0), 0);
+  const categorySeries = categoryOptions.slice(0, 5);
+  const categoryMax = categorySeries.length ? Math.max(...categorySeries.map((c) => c.count || 0), 1) : 1;
 
   const fetchArticles = async (page = 0) => {
     setLoading(true);
@@ -123,6 +177,7 @@ export default function HomePage() {
       minute: '2-digit',
     });
   };
+  const showSkeleton = loading && articles.length === 0;
 
   return (
     <div className="min-h-screen">
@@ -156,24 +211,63 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
             <div className="p-5 border-b md:border-b-0 md:border-r border-slate-200 bg-white/70">
               <p className="news-kicker text-slate-500 mb-1">Coverage</p>
-              <p className="text-3xl font-black text-slate-900 inline-flex items-center gap-2">
+              <div className="text-3xl font-black text-slate-900 inline-flex items-center gap-2">
                 <Layers3 size={22} className="text-[var(--news-secondary)]" />
-                {insights?.totalArticles ?? 0}
-              </p>
+                {insights ? insights.totalArticles : <span className="skeleton inline-block h-8 w-16" />}
+              </div>
               <p className="text-sm text-slate-500">Tracked stories in database</p>
             </div>
             <div className="p-5 border-b md:border-b-0 md:border-r border-slate-200 bg-white/70">
               <p className="news-kicker text-slate-500 mb-1">Newsroom Pulse</p>
-              <p className="text-lg font-black text-slate-900 inline-flex items-center gap-2">
+              <div className="text-lg font-black text-slate-900 inline-flex items-center gap-2">
                 <Globe2 size={18} className="text-[var(--news-secondary)]" />
-                {insights?.topCategory || 'General'}
-              </p>
+                {insights ? (insights.topCategory || 'General') : <span className="skeleton inline-block h-6 w-24" />}
+              </div>
               <p className="text-sm text-slate-500">Dominant category</p>
             </div>
             <div className="p-5 bg-white/70">
               <p className="news-kicker text-slate-500 mb-1">Last Pull</p>
-              <p className="text-base font-bold text-slate-900">{formatLastFetched(insights?.lastFetchedAt)}</p>
+              <div className="text-base font-bold text-slate-900">
+                {insights ? formatLastFetched(insights?.lastFetchedAt) : <span className="skeleton inline-block h-5 w-40" />}
+              </div>
               <p className="text-sm text-slate-500">Latest ingestion cycle</p>
+            </div>
+          </div>
+          <div className="border-t border-slate-200 bg-white/80 p-5 sm:p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <p className="news-kicker text-slate-500 mb-3">Sentiment Mix</p>
+              <div className="mini-chart">
+                {sentimentSeries.map((item) => {
+                  const count = sentimentCounts[item.key] || 0;
+                  const width = sentimentTotal > 0 ? Math.max((count / sentimentTotal) * 100, count > 0 ? 8 : 0) : 0;
+                  return (
+                    <div key={item.key} className="mini-chart-row">
+                      <span className="font-semibold text-slate-600">{item.label}</span>
+                      <div className="mini-chart-track">
+                        <div className="mini-chart-fill" style={{ width: `${width}%`, background: item.color }} />
+                      </div>
+                      <span className="text-slate-500 font-semibold">{count}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div>
+              <p className="news-kicker text-slate-500 mb-3">Top Categories</p>
+              <div className="mini-chart">
+                {(categorySeries.length ? categorySeries : [{ category: 'No data', count: 0 }]).map(({ category, count }) => {
+                  const width = categoryMax > 0 ? ((count || 0) / categoryMax) * 100 : 0;
+                  return (
+                    <div key={category} className="mini-chart-row">
+                      <span className="font-semibold text-slate-600 truncate" title={category}>{category}</span>
+                      <div className="mini-chart-track">
+                        <div className="mini-chart-fill" style={{ width: `${width}%` }} />
+                      </div>
+                      <span className="text-slate-500 font-semibold">{count || 0}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </section>
@@ -234,13 +328,17 @@ export default function HomePage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1 lg:sticky lg:top-6 lg:self-start">
-            <CategoryFilter
-              categories={categoryOptions}
-              onCategoryChange={handleCategoryChange}
-              onSentimentChange={handleSentimentChange}
-              selectedCategory={selectedCategory}
-              selectedSentiment={selectedSentiment}
-            />
+            {showSkeleton ? (
+              <FilterSkeleton />
+            ) : (
+              <CategoryFilter
+                categories={categoryOptions}
+                onCategoryChange={handleCategoryChange}
+                onSentimentChange={handleSentimentChange}
+                selectedCategory={selectedCategory}
+                selectedSentiment={selectedSentiment}
+              />
+            )}
           </div>
 
           <div className="lg:col-span-3">
@@ -253,9 +351,10 @@ export default function HomePage() {
             </div>
 
             {loading ? (
-              <div className="news-panel news-panel-soft rounded-xl p-10 text-center">
-                <RefreshCw className="animate-spin text-[var(--news-accent)] mx-auto" size={32} />
-                <p className="text-slate-600 mt-4 font-semibold">Refreshing newsroom feed...</p>
+              <div className="grid grid-cols-1 gap-6 mb-8">
+                <ArticleSkeleton />
+                <ArticleSkeleton />
+                <ArticleSkeleton />
               </div>
             ) : articles.length === 0 ? (
               <div className="news-panel news-panel-soft rounded-xl p-10 text-center">
