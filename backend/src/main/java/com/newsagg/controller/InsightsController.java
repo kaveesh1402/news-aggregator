@@ -44,6 +44,18 @@ public class InsightsController {
         }
     }
 
+    @PostMapping("/recategorize")
+    public ResponseEntity<String> recategorizeArticles() {
+        try {
+            int updated = newsArticleService.recategorizeAllArticles();
+            return ResponseEntity.ok("Recategorization completed. Updated articles: " + updated);
+        } catch (Exception e) {
+            log.error("Error recategorizing articles", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error recategorizing articles: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/health")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("News Aggregator API is running");

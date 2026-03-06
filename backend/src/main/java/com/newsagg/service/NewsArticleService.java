@@ -168,7 +168,9 @@ public class NewsArticleService {
                     article.getContent());
             article.setSentiment(sentiment);
 
-            String category = categorizerService.categorizeArticle(article.getTitle(), article.getContent());
+            String category = categorizerService.categorizeArticle(
+                    article.getTitle(),
+                    buildCategorizationText(article));
             article.setCategory(category);
 
             String fullText = article.getTitle() + " " + article.getSummary();
@@ -251,6 +253,28 @@ public class NewsArticleService {
         newsArticleRepository.deleteById(id);
     }
 
+    public int recategorizeAllArticles() {
+        List<NewsArticle> articles = newsArticleRepository.findAll();
+        List<NewsArticle> updatedArticles = new ArrayList<>();
+
+        for (NewsArticle article : articles) {
+            String updatedCategory = categorizerService.categorizeArticle(
+                    article.getTitle(),
+                    buildCategorizationText(article));
+
+            if (!Objects.equals(updatedCategory, article.getCategory())) {
+                article.setCategory(updatedCategory);
+                updatedArticles.add(article);
+            }
+        }
+
+        if (!updatedArticles.isEmpty()) {
+            newsArticleRepository.saveAll(updatedArticles);
+        }
+
+        return updatedArticles.size();
+    }
+
     private SearchResponseDTO buildSearchResponse(Page<NewsArticle> articles, int page, int size) {
         List<NewsArticleDTO> dtos = articles.getContent().stream()
                 .map(this::convertToDTO)
@@ -281,5 +305,11 @@ public class NewsArticleService {
                 .relevanceScore(article.getRelevanceScore())
                 .processed(article.getProcessed())
                 .build();
+    }
+
+    private String buildCategorizationText(NewsArticle article) {
+        String summary = article.getSummary() != null ? article.getSummary() : "";
+        String content = article.getContent() != null ? article.getContent() : "";
+        return (summary + " " + content).trim();
     }
 }
