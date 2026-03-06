@@ -60,8 +60,7 @@ Preview the production build locally.
 ### Homepage (`/`)
 - ✅ Browse all news articles with pagination
 - ✅ Search articles by keywords
-- ✅ AI-powered semantic search (natural language queries)
-- ✅ Filter by category (LLM, AI Startups, Robotics, Research, Policy, Tools)
+- ✅ Dynamic topic filtering (driven by backend insights)
 - ✅ Filter by sentiment (Positive, Neutral, Negative)
 - ✅ Dashboard with analytics (total articles, category counts)
 - ✅ Delete articles
@@ -79,8 +78,8 @@ Preview the production build locally.
 ### Components
 1. **Header** - Navigation bar with app logo and links
 2. **NewsCard** - Article preview card with metadata
-3. **SearchBar** - Keyword and semantic search input
-4. **CategoryFilter** - Sidebar filter by category and sentiment
+3. **SearchBar** - Keyword search input
+4. **CategoryFilter** - Sidebar filter by topic and sentiment
 5. **SentimentBadge** - Visual sentiment indicator
 6. **Pagination** - Navigate between article pages
 
@@ -92,7 +91,7 @@ frontend/
 │   ├── components/
 │   │   ├── Header.jsx           # Navigation header
 │   │   ├── NewsCard.jsx         # Article preview component
-│   │   ├── SearchBar.jsx        # Search input with type toggle
+│   │   ├── SearchBar.jsx        # Keyword search input
 │   │   ├── CategoryFilter.jsx   # Sidebar filters
 │   │   ├── SentimentBadge.jsx   # Sentiment status display
 │   │   └── Pagination.jsx       # Page navigation
@@ -150,7 +149,7 @@ The frontend uses the following backend API endpoints:
 - `GET /api/news` - Get all articles (paginated)
 - `GET /api/news/{id}` - Get single article
 - `GET /api/news/search?q=...` - Keyword search
-- `GET /api/news/semantic-search?query=...` - AI semantic search
+- `GET /api/news/semantic-search?query=...` - Semantic search endpoint (API clients, not exposed in current UI)
 - `GET /api/news/category/{category}` - Filter by category
 - `GET /api/news/sentiment/{sentiment}` - Filter by sentiment
 - `GET /api/news/{id}/recommendations` - Get similar articles
@@ -205,16 +204,13 @@ Copy the `dist/` folder contents to your web server's public directory.
 
 ## Environment Variables
 
-Create a `.env.local` file in the frontend directory if you need to customize the backend URL:
+The current frontend uses a fixed API base URL in `src/api/client.js`:
 
-```env
-VITE_API_BASE_URL=http://localhost:8080/api
-```
-
-Update `src/api/client.js` to use it:
 ```javascript
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+const API_BASE_URL = 'http://localhost:8080/api';
 ```
+
+If needed, you can switch this to use `import.meta.env`.
 
 ## Browser Support
 
@@ -243,7 +239,7 @@ Monitor performance using:
 
 1. ✅ Frontend is now running!
 2. 🚀 Make sure backend is running on `localhost:8080`
-3. 📚 Test different search types (keyword vs AI search)
+3. 📚 Test search and filtering (keyword, topic, sentiment)
 4. 🎨 Customize styling in Tailwind config
 5. 🔌 Consider adding authentication for production
 

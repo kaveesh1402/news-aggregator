@@ -17,6 +17,9 @@ export default function HomePage() {
   const [selectedSentiment, setSelectedSentiment] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const pageSize = 10;
+  const categoryOptions = (insights?.categoryCounts || [])
+    .filter((item) => item?.category)
+    .sort((a, b) => (b.count || 0) - (a.count || 0));
 
   const fetchArticles = async (page = 0) => {
     setLoading(true);
@@ -185,6 +188,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1 lg:sticky lg:top-6 lg:self-start">
             <CategoryFilter
+              categories={categoryOptions}
               onCategoryChange={handleCategoryChange}
               onSentimentChange={handleSentimentChange}
               selectedCategory={selectedCategory}

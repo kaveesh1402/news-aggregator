@@ -151,11 +151,7 @@ curl http://localhost:8080/api/health
 Or visit: http://localhost:8080/api/health
 
 **Expected response:**
-```json
-{
-  "status": "UP"
-}
-```
+`News Aggregator API is running`
 
 ### Test 2: Get All Articles
 
@@ -163,7 +159,7 @@ Or visit: http://localhost:8080/api/health
 curl http://localhost:8080/api/news?page=0&size=10
 ```
 
-**Expected response:** JSON array of articles (should have 5 sample articles)
+**Expected response:** JSON payload with `articles`, `totalElements`, `totalPages`, and pagination fields.
 
 ### Test 3: H2 Database Console
 
@@ -171,7 +167,7 @@ Open in browser: http://localhost:8080/h2-console
 
 **Login:**
 - Driver: `org.h2.Driver`
-- JDBC URL: `jdbc:h2:mem:testdb`
+- JDBC URL: `jdbc:h2:mem:newsaggdb`
 - Username: `sa`
 - Password: (leave empty)
 
@@ -259,7 +255,7 @@ backend/
 
 ---
 
-## API Endpoints (13 Total)
+## API Endpoints
 
 Once backend is running, test these endpoints:
 
@@ -268,8 +264,8 @@ Once backend is running, test these endpoints:
 GET    /api/news                              # All articles
 GET    /api/news/{id}                         # Single article
 GET    /api/news/search?q=AI                  # Keyword search
-GET    /api/news/semantic-search?query=AI     # Semantic search
-GET    /api/news/category/LLM                 # Filter by category
+GET    /api/news/semantic-search?query=AI     # Semantic search (API endpoint)
+GET    /api/news/category/{category}          # Filter by category/topic value
 GET    /api/news/sentiment/POSITIVE           # Filter by sentiment
 GET    /api/news/{id}/recommendations         # Similar articles
 DELETE /api/news/{id}                         # Delete article
@@ -370,13 +366,13 @@ Then connect debugger to port 5005.
    - Creates `news_article` table
    - Sets up JPA entities
 
-3. **Sample data loaded**
-   - `NewsFetcherService` loads 5 sample articles
-   - Articles are AI-analyzed (summary, sentiment, category, embeddings)
+3. **Articles fetched and processed**
+   - `NewsFetcherService` fetches external news when configured (TheNewsAPI token recommended)
+   - New articles are AI-processed (summary, sentiment, category, embeddings)
 
 4. **Web server starts**
    - Listens on port 8080
-   - Enables 13 REST API endpoints
+   - Enables REST API endpoints for news, insights, health, and fetch triggers
    - Configures CORS for frontend
 
 5. **Scheduled task configured**

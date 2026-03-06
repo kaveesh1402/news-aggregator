@@ -1,18 +1,15 @@
 import React from 'react';
 import { Filter, Layers, Smile, Frown, Minus } from 'lucide-react';
 
-const CATEGORIES = [
-  'LLM',
-  'AI Startups',
-  'Robotics',
-  'AI Research',
-  'AI Policy',
-  'AI Tools',
-];
-
 const SENTIMENTS = ['POSITIVE', 'NEUTRAL', 'NEGATIVE'];
 
-export default function CategoryFilter({ onCategoryChange, onSentimentChange, selectedCategory, selectedSentiment }) {
+export default function CategoryFilter({
+  categories = [],
+  onCategoryChange,
+  onSentimentChange,
+  selectedCategory,
+  selectedSentiment,
+}) {
   const sentimentIcon = (sentiment) => {
     if (sentiment === 'POSITIVE') return <Smile size={14} />;
     if (sentiment === 'NEGATIVE') return <Frown size={14} />;
@@ -29,7 +26,7 @@ export default function CategoryFilter({ onCategoryChange, onSentimentChange, se
       <div className="mb-6">
         <h3 className="text-xs font-black text-slate-500 mb-3 tracking-wider uppercase flex items-center gap-2">
           <Layers size={13} />
-          Category
+          Topic
         </h3>
         <div className="space-y-2">
           <button
@@ -40,9 +37,9 @@ export default function CategoryFilter({ onCategoryChange, onSentimentChange, se
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
-            All Categories
+            All Topics
           </button>
-          {CATEGORIES.map((category) => (
+          {categories.map(({ category, count }) => (
             <button
               key={category}
               onClick={() => onCategoryChange(category)}
@@ -53,8 +50,14 @@ export default function CategoryFilter({ onCategoryChange, onSentimentChange, se
               }`}
             >
               {category}
+              <span className="ml-2 text-xs opacity-80">({count})</span>
             </button>
           ))}
+          {categories.length === 0 && (
+            <p className="px-3 py-2 text-sm text-slate-500 bg-slate-50 rounded-md">
+              Topics will appear after the first news fetch.
+            </p>
+          )}
         </div>
       </div>
 
