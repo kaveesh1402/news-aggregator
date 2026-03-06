@@ -16,7 +16,6 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedSentiment, setSelectedSentiment] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchType, setSearchType] = useState('keyword');
   const pageSize = 10;
 
   const fetchArticles = async (page = 0) => {
@@ -26,9 +25,7 @@ export default function HomePage() {
       let response;
 
       if (searchQuery) {
-        response = searchType === 'semantic'
-          ? await newsAPI.semanticSearch(searchQuery, page, pageSize)
-          : await newsAPI.searchArticles(searchQuery, page, pageSize);
+        response = await newsAPI.searchArticles(searchQuery, page, pageSize);
       } else if (selectedCategory) {
         response = await newsAPI.getArticlesByCategory(selectedCategory, page, pageSize);
       } else if (selectedSentiment) {
@@ -64,14 +61,10 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchArticles(0);
-  }, [selectedCategory, selectedSentiment, searchQuery, searchType]);
+  }, [selectedCategory, selectedSentiment, searchQuery]);
 
   const handleSearch = (query) => {
     setSearchQuery(query);
-  };
-
-  const handleSearchTypeChange = (type) => {
-    setSearchType(type);
   };
 
   const handleCategoryChange = (category) => {
@@ -159,7 +152,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <SearchBar onSearch={handleSearch} onSearchTypeChange={handleSearchTypeChange} />
+        <SearchBar onSearch={handleSearch} />
 
         {error && (
           <div className="news-panel rounded-xl border-rose-300 bg-rose-50 text-rose-800 px-4 py-3 mb-6 flex items-center gap-2">
