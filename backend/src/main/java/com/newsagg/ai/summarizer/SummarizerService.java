@@ -37,9 +37,9 @@ public class SummarizerService {
     }
 
     public String summarizeArticle(String title, String content) {
+        String safeTitle = StringUtils.hasText(title) ? title.trim() : "Untitled";
+        String safeContent = StringUtils.hasText(content) ? content.trim() : "";
         try {
-            String safeTitle = StringUtils.hasText(title) ? title.trim() : "Untitled";
-            String safeContent = StringUtils.hasText(content) ? content.trim() : "";
             String clippedContent = safeContent.length() > MAX_INPUT_CHARS
                     ? safeContent.substring(0, MAX_INPUT_CHARS)
                     : safeContent;
@@ -49,10 +49,12 @@ public class SummarizerService {
                 return llmSummary;
             }
 
-            return generateExtractiveSummary(safeTitle, clippedContent);
+            String extractive = generateExtractiveSummary(safeTitle, clippedContent);
+            return StringUtils.hasText(extractive) ? extractive : safeTitle;
         } catch (Exception e) {
             log.warn("Failed to generate summary", e);
-            return "Summary unavailable.";
+            String fallback = generateExtractiveSummary(safeTitle, safeContent);
+            return StringUtils.hasText(fallback) ? fallback : safeTitle;
         }
     }
 
@@ -189,7 +191,7 @@ public class SummarizerService {
 
     private String trimToMax(String text) {
         if (!StringUtils.hasText(text)) {
-            return "Summary unavailable.";
+            return null;
         }
         String cleaned = text.trim();
         return cleaned.length() > MAX_SUMMARY_CHARS

@@ -56,6 +56,30 @@ public class InsightsController {
         }
     }
 
+    @PostMapping("/recompute-sentiment")
+    public ResponseEntity<String> recomputeSentiment() {
+        try {
+            int updated = newsArticleService.recomputeSentimentForAllArticles();
+            return ResponseEntity.ok("Sentiment recompute completed. Updated articles: " + updated);
+        } catch (Exception e) {
+            log.error("Error recomputing sentiment", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error recomputing sentiment: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/recompute-summaries")
+    public ResponseEntity<String> recomputeSummaries() {
+        try {
+            int updated = newsArticleService.recomputeSummariesForAllArticles();
+            return ResponseEntity.ok("Summary recompute completed. Updated articles: " + updated);
+        } catch (Exception e) {
+            log.error("Error recomputing summaries", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error recomputing summaries: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/health")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("News Aggregator API is running");

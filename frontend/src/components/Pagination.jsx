@@ -3,11 +3,14 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function Pagination({ currentPage, totalPages, onPageChange }) {
   return (
-    <div className="news-panel rounded-xl p-4 flex items-center justify-center gap-2 mt-8 news-entrance">
+    <div className="news-panel news-panel-soft news-panel-luxe rounded-xl p-4 flex flex-col sm:flex-row items-center justify-center gap-2 mt-8 news-entrance">
+      <p className="text-xs font-bold uppercase tracking-wider text-slate-500 sm:mr-2">
+        Page {currentPage + 1} of {totalPages}
+      </p>
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 0}
-        className="p-2 rounded-md border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+        className="btn-ghost p-2 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <ChevronLeft size={20} />
       </button>
@@ -24,10 +27,10 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
               key={pageNum}
               onClick={() => onPageChange(pageNum)}
               disabled={pageNum >= totalPages}
-              className={`px-3 py-2 rounded-md transition text-sm font-bold ${
+              className={`px-3 py-2 rounded-xl transition text-sm font-bold ${
                 pageNum === currentPage
-                  ? 'bg-slate-900 text-white'
-                  : 'border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed'
+                  ? 'bg-slate-900 text-white shadow'
+                  : 'btn-ghost disabled:opacity-50 disabled:cursor-not-allowed'
               }`}
             >
               {pageNum + 1}
@@ -39,7 +42,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage >= totalPages - 1}
-        className="p-2 rounded-md border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+        className="btn-ghost p-2 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <ChevronRight size={20} />
       </button>

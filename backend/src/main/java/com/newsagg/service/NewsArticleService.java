@@ -161,32 +161,48 @@ public class NewsArticleService {
         log.info("Processing article: {}", article.getTitle());
 
         try {
-            String summary = summarizerService.summarizeArticle(article.getTitle(), article.getContent());
-            article.setSummary(summary);
+            try {
+                String summary = summarizerService.summarizeArticle(article.getTitle(), article.getContent());
+                article.setSummary(summary);
+            } catch (Exception e) {
+                log.warn("Summary generation failed for article: {}", article.getTitle(), e);
+            }
 
-            SentimentType sentiment = sentimentAnalysisService.analyzeSentiment(article.getTitle(),
-                    article.getContent());
-            article.setSentiment(sentiment);
+            try {
+                SentimentType sentiment = sentimentAnalysisService.analyzeSentiment(article.getTitle(),
+                        article.getContent());
+                article.setSentiment(sentiment != null ? sentiment : SentimentType.NEUTRAL);
+            } catch (Exception e) {
+                log.warn("Sentiment analysis failed for article: {}", article.getTitle(), e);
+                article.setSentiment(SentimentType.NEUTRAL);
+            }
 
-            String category = categorizerService.categorizeArticle(
-                    article.getTitle(),
-                    buildCategorizationText(article));
-            article.setCategory(category);
+            try {
+                String category = categorizerService.categorizeArticle(
+                        article.getTitle(),
+                        buildCategorizationText(article));
+                article.setCategory(category);
+            } catch (Exception e) {
+                log.warn("Category classification failed for article: {}", article.getTitle(), e);
+            }
 
-            String fullText = article.getTitle() + " " + article.getSummary();
-            double[] articleEmbedding = embeddingService.generateEmbedding(fullText);
-            article.setEmbedding(embeddingService.serializeEmbedding(articleEmbedding));
-
-            article.setProcessed(true);
-            newsArticleRepository.save(article);
-
-            return convertToDTO(article);
+            try {
+                String summary = article.getSummary() != null ? article.getSummary() : "";
+                String fullText = (article.getTitle() + " " + summary).trim();
+                if (!fullText.isBlank()) {
+                    double[] articleEmbedding = embeddingService.generateEmbedding(fullText);
+                    article.setEmbedding(embeddingService.serializeEmbedding(articleEmbedding));
+                }
+            } catch (Exception e) {
+                log.warn("Embedding generation failed for article: {}", article.getTitle(), e);
+            }
         } catch (Exception e) {
             log.error("Error processing article: {}", article.getTitle(), e);
-            article.setProcessed(true);
-            newsArticleRepository.save(article);
-            return convertToDTO(article);
         }
+
+        article.setProcessed(true);
+        newsArticleRepository.save(article);
+        return convertToDTO(article);
     }
 
     public void saveArticle(NewsArticle article) {
@@ -264,6 +280,71 @@ public class NewsArticleService {
 
             if (!Objects.equals(updatedCategory, article.getCategory())) {
                 article.setCategory(updatedCategory);
+                updatedArticles.add(article);
+            }
+        }
+
+        if (!updatedArticles.isEmpty()) {
+            newsArticleRepository.saveAll(updatedArticles);
+        }
+
+        return updatedArticles.size();
+    }
+
+    public int recomputeSentimentForAllArticles() {
+        List<NewsArticle> articles = newsArticleRepository.findAll();
+        List<NewsArticle> updatedArticles = new ArrayList<>();
+
+        for (NewsArticle article : articles) {
+            SentimentType current = article.getSentiment();
+            SentimentType recomputed;
+
+            try {
+                recomputed = sentimentAnalysisService.analyzeSentiment(article.getTitle(), article.getContent());
+            } catch (Exception e) {
+                log.warn("Skipping sentiment recompute for article: {}", article.getTitle(), e);
+                continue;
+            }
+
+            if (recomputed == null) {
+                recomputed = SentimentType.NEUTRAL;
+            }
+
+            boolean sentimentChanged = !Objects.equals(current, recomputed);
+            boolean processedChanged = !Boolean.TRUE.equals(article.getProcessed());
+
+            if (sentimentChanged || processedChanged) {
+                article.setSentiment(recomputed);
+                article.setProcessed(true);
+                updatedArticles.add(article);
+            }
+        }
+
+        if (!updatedArticles.isEmpty()) {
+            newsArticleRepository.saveAll(updatedArticles);
+        }
+
+        return updatedArticles.size();
+    }
+
+    public int recomputeSummariesForAllArticles() {
+        List<NewsArticle> articles = newsArticleRepository.findAll();
+        List<NewsArticle> updatedArticles = new ArrayList<>();
+
+        for (NewsArticle article : articles) {
+            String currentSummary = article.getSummary();
+            String recomputed;
+
+            try {
+                recomputed = summarizerService.summarizeArticle(article.getTitle(), article.getContent());
+            } catch (Exception e) {
+                log.warn("Skipping summary recompute for article: {}", article.getTitle(), e);
+                continue;
+            }
+
+            if (!Objects.equals(currentSummary, recomputed)) {
+                article.setSummary(recomputed);
+                article.setProcessed(true);
                 updatedArticles.add(article);
             }
         }

@@ -7,11 +7,13 @@ import ArticleDetailPage from './pages/ArticleDetailPage';
 export default function App() {
   return (
     <Router>
-      <Header />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/article/:id" element={<ArticleDetailPage />} />
-      </Routes>
+      <div className="relative z-10">
+        <Header />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/article/:id" element={<ArticleDetailPage />} />
+        </Routes>
+      </div>
     </Router>
   );
 }
