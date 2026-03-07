@@ -13,6 +13,7 @@ public class NewsArticleDTO {
     private Long id;
     private String title;
     private String content;
+    private String sourceExcerpt;
     private String summary;
     private String category;
     private SentimentType sentiment;

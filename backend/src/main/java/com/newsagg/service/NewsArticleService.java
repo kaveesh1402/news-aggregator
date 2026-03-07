@@ -17,12 +17,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @Transactional
 public class NewsArticleService {
+    private static final int MAX_EXCERPT_CHARS = 700;
+    private static final Pattern SENTENCE_SPLIT = Pattern.compile("(?<=[.!?])\\s+");
 
     private final NewsArticleRepository newsArticleRepository;
     private final SummarizerService summarizerService;
@@ -51,7 +54,7 @@ public class NewsArticleService {
 
     public NewsArticleDTO getArticleById(Long id) {
         return newsArticleRepository.findById(id)
-                .map(this::convertToDTO)
+                .map(this::safeConvertToDTO)
                 .orElseThrow(() -> new RuntimeException("Article not found: " + id));
     }
 
@@ -101,7 +104,7 @@ public class NewsArticleService {
         int fromIndex = page * size;
         int toIndex = Math.min(fromIndex + size, totalElements);
         List<NewsArticle> pagedArticles = rankedArticles.subList(fromIndex, toIndex);
-        List<NewsArticleDTO> dtos = pagedArticles.stream().map(this::convertToDTO).collect(Collectors.toList());
+        List<NewsArticleDTO> dtos = pagedArticles.stream().map(this::safeConvertToDTO).collect(Collectors.toList());
 
         return SearchResponseDTO.builder()
                 .articles(dtos)
@@ -145,7 +148,7 @@ public class NewsArticleService {
                 .limit(size)
                 .collect(Collectors.toList());
 
-        List<NewsArticleDTO> dtos = recommendations.stream().map(this::convertToDTO).collect(Collectors.toList());
+        List<NewsArticleDTO> dtos = recommendations.stream().map(this::safeConvertToDTO).collect(Collectors.toList());
 
         return SearchResponseDTO.builder()
                 .articles(dtos)
@@ -202,7 +205,7 @@ public class NewsArticleService {
 
         article.setProcessed(true);
         newsArticleRepository.save(article);
-        return convertToDTO(article);
+        return safeConvertToDTO(article);
     }
 
     public void saveArticle(NewsArticle article) {
@@ -358,7 +361,7 @@ public class NewsArticleService {
 
     private SearchResponseDTO buildSearchResponse(Page<NewsArticle> articles, int page, int size) {
         List<NewsArticleDTO> dtos = articles.getContent().stream()
-                .map(this::convertToDTO)
+                .map(this::safeConvertToDTO)
                 .collect(Collectors.toList());
 
         return SearchResponseDTO.builder()
@@ -375,6 +378,7 @@ public class NewsArticleService {
                 .id(article.getId())
                 .title(article.getTitle())
                 .content(article.getContent())
+                .sourceExcerpt(buildSourceExcerpt(article.getContent(), article.getTitle()))
                 .summary(article.getSummary())
                 .source(article.getSource())
                 .url(article.getUrl())
@@ -388,9 +392,108 @@ public class NewsArticleService {
                 .build();
     }
 
+    private NewsArticleDTO safeConvertToDTO(NewsArticle article) {
+        try {
+            return convertToDTO(article);
+        } catch (Exception e) {
+            log.warn("Failed to build full DTO for article id={}, returning minimal payload", article.getId(), e);
+            return NewsArticleDTO.builder()
+                    .id(article.getId())
+                    .title(article.getTitle())
+                    .content(article.getContent())
+                    .summary(article.getSummary())
+                    .source(article.getSource())
+                    .url(article.getUrl())
+                    .imageUrl(article.getImageUrl())
+                    .category(article.getCategory())
+                    .sentiment(article.getSentiment())
+                    .publishedAt(article.getPublishedAt())
+                    .fetchedAt(article.getFetchedAt())
+                    .relevanceScore(article.getRelevanceScore())
+                    .processed(article.getProcessed())
+                    .build();
+        }
+    }
+
     private String buildCategorizationText(NewsArticle article) {
         String summary = article.getSummary() != null ? article.getSummary() : "";
         String content = article.getContent() != null ? article.getContent() : "";
         return (summary + " " + content).trim();
+    }
+
+    private String buildSourceExcerpt(String content, String title) {
+        if (content == null || content.isBlank()) {
+            return title;
+        }
+
+        String cleaned = content
+                .replaceAll("(?im)^\\s*keywords:.*$", "")
+                .replaceAll("(?im)^\\s*source link:.*$", "")
+                .replaceAll("\\s+", " ")
+                .trim();
+
+        if (cleaned.isBlank()) {
+            return title;
+        }
+
+        String[] sentences = SENTENCE_SPLIT.split(cleaned);
+        if (sentences.length == 0) {
+            return trimToExcerpt(cleaned);
+        }
+
+        List<SentenceScore> scored = new ArrayList<>();
+        for (int i = 0; i < sentences.length; i++) {
+            String sentence = sentences[i].trim();
+            if (sentence.length() < 30) {
+                continue;
+            }
+            scored.add(new SentenceScore(i, sentence, scoreExcerptSentence(sentence)));
+        }
+
+        if (scored.isEmpty()) {
+            return trimToExcerpt(sentences[0].trim());
+        }
+
+        scored.sort(Comparator.comparingDouble(SentenceScore::score).reversed());
+        List<SentenceScore> top = scored.stream().limit(3).toList();
+        top.sort(Comparator.comparingInt(SentenceScore::index));
+
+        String excerpt = top.stream()
+                .map(SentenceScore::text)
+                .collect(Collectors.joining(" "))
+                .trim();
+
+        if (excerpt.isBlank()) {
+            excerpt = sentences[0].trim();
+        }
+        return trimToExcerpt(excerpt);
+    }
+
+    private double scoreExcerptSentence(String sentence) {
+        double score = 1.0;
+        if (sentence.matches(".*\\d+.*")) {
+            score += 0.5;
+        }
+        if (sentence.matches(".*\\b[A-Z][a-z]+\\s+[A-Z][a-z]+.*")) {
+            score += 0.2;
+        }
+        String lowered = sentence.toLowerCase();
+        if (lowered.startsWith("headline:")) {
+            score -= 0.6;
+        }
+        return score;
+    }
+
+    private String trimToExcerpt(String text) {
+        if (text == null || text.isBlank()) {
+            return null;
+        }
+        String cleaned = text.trim();
+        return cleaned.length() > MAX_EXCERPT_CHARS
+                ? cleaned.substring(0, MAX_EXCERPT_CHARS - 3).trim() + "..."
+                : cleaned;
+    }
+
+    private record SentenceScore(int index, String text, double score) {
     }
 }

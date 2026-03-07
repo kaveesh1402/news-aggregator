@@ -28,4 +28,4 @@ Backend APIs (NewsAgg)
   External API used by backend                                                                                                                           
                                                                                                                                                          
   - GET https://api.thenewsapi.com/v1/news/top                                                                                                           
-    Params used by your app: api_token, locale, language, categories, limit, page
+    Params used by your app: api_token, locale, language, categories, limit, pagestop

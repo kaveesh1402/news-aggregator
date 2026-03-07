@@ -78,6 +78,7 @@ export default function ArticleDetailPage() {
   const publishedShort = hasValidDate
     ? publishedDate.toLocaleDateString()
     : 'Unknown date';
+  const sourceExcerpt = article.sourceExcerpt || article.content || 'No source excerpt available.';
 
   return (
     <div className="min-h-screen">
@@ -151,10 +152,10 @@ export default function ArticleDetailPage() {
           <div className="mb-8">
             <h2 className="news-section-title text-slate-900 mb-2">Source Excerpt</h2>
             <p className="text-sm text-slate-500 mb-4">
-              Raw source text (can be truncated). Open the original link for complete details.
+              Cleaned source-backed excerpt. Open the original link for full article text.
             </p>
             <div className="prose prose-lg text-slate-700 whitespace-pre-wrap max-w-none bg-slate-50 border border-slate-200 rounded-xl p-5 leading-8">
-              {article.content}
+              {sourceExcerpt}
             </div>
           </div>
 
