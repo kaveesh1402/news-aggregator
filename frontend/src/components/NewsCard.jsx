@@ -21,7 +21,7 @@ export default function NewsCard({ article, onDelete, style }) {
   return (
     <Link to={`/article/${article.id}`} className="block">
       <article
-        className="news-panel news-panel-soft news-panel-luxe rounded-xl p-5 sm:p-6 h-full cursor-pointer transition duration-300 hover:-translate-y-0.5 hover:shadow-xl news-entrance"
+        className="news-panel news-panel-soft news-panel-luxe premium-story-card rounded-xl p-5 sm:p-6 h-full cursor-pointer transition duration-300 hover:-translate-y-0.5 hover:shadow-xl news-entrance"
         style={style}
       >
         <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-5">

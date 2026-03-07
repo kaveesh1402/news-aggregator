@@ -50,7 +50,7 @@ export default function CategoryFilter({
               }`}
             >
               <span>{category}</span>
-              <span className="ml-2 text-xs opacity-80 rounded-full bg-white/75 px-2 py-0.5 border border-slate-200">({count})</span>
+              <span className="category-count-chip ml-2 text-xs rounded-full px-2 py-0.5 border">({count})</span>
             </button>
           ))}
           {categories.length === 0 && (

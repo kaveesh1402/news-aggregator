@@ -143,7 +143,7 @@ export default function ArticleDetailPage() {
               <p className="text-sm text-[var(--news-secondary)] mb-4">
                 Concise model-generated overview of the article.
               </p>
-              <p className="text-lg text-slate-700 leading-relaxed bg-blue-50 p-5 rounded-xl border-l-4 border-blue-400 max-w-4xl">
+              <p className="text-lg text-slate-700 leading-relaxed bg-blue-50 p-5 rounded-xl border-l-4 border-blue-400 max-w-4xl summary-block">
                 {article.summary}
               </p>
             </div>
@@ -154,24 +154,24 @@ export default function ArticleDetailPage() {
             <p className="text-sm text-slate-500 mb-4">
               Cleaned source-backed excerpt. Open the original link for full article text.
             </p>
-            <div className="prose prose-lg text-slate-700 whitespace-pre-wrap max-w-none bg-slate-50 border border-slate-200 rounded-xl p-5 leading-8">
+            <div className="prose prose-lg text-slate-700 whitespace-pre-wrap max-w-none bg-slate-50 border border-slate-200 rounded-xl p-5 leading-8 source-excerpt-block">
               {sourceExcerpt}
             </div>
           </div>
 
           <hr className="my-8 border-slate-200" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 detail-meta-card">
               <p className="text-sm text-slate-600 font-semibold">Category</p>
               <p className="text-lg font-bold text-slate-900">{article.category}</p>
             </div>
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 detail-meta-card">
               <p className="text-sm text-slate-600 font-semibold">Sentiment</p>
               <div className="mt-2">
                 <SentimentBadge sentiment={article.sentiment} />
               </div>
             </div>
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 detail-meta-card">
               <p className="text-sm text-slate-600 font-semibold">Published</p>
               <p className="text-lg font-bold text-slate-900">
                 {publishedShort}

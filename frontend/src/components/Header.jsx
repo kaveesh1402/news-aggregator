@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpenCheck, Database, Radar, Sparkles } from 'lucide-react';
 
-export default function Header() {
+export default function Header({ theme = 'light', onToggleTheme }) {
   const now = new Date().toLocaleString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -41,6 +41,37 @@ export default function Header() {
                 Home
               </span>
             </Link>
+            <button
+              type="button"
+              onClick={onToggleTheme}
+              className="theme-toggle-btn rounded-xl border border-slate-700/80 bg-slate-900/55 px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-800 transition"
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            >
+                <span className="inline-flex items-center gap-2.5">
+                  <span className="theme-toggle-icon-wrap" aria-hidden="true">
+                    <svg className="theme-icon theme-icon-sun theme-svg" viewBox="0 0 24 24">
+                      <circle className="theme-sun-core" cx="12" cy="12" r="4.1" />
+                      <g className="theme-sun-rays">
+                        <line x1="12" y1="1.8" x2="12" y2="4.6" />
+                        <line x1="12" y1="19.4" x2="12" y2="22.2" />
+                        <line x1="1.8" y1="12" x2="4.6" y2="12" />
+                        <line x1="19.4" y1="12" x2="22.2" y2="12" />
+                        <line x1="4.6" y1="4.6" x2="6.6" y2="6.6" />
+                        <line x1="17.4" y1="17.4" x2="19.4" y2="19.4" />
+                        <line x1="4.6" y1="19.4" x2="6.6" y2="17.4" />
+                        <line x1="17.4" y1="6.6" x2="19.4" y2="4.6" />
+                      </g>
+                    </svg>
+                    <svg className="theme-icon theme-icon-moon theme-svg" viewBox="0 0 24 24">
+                      <path d="M21 12.8A8.8 8.8 0 1 1 11.2 3a6.7 6.7 0 1 0 9.8 9.8Z" />
+                    </svg>
+                  </span>
+                  <span className="theme-toggle-label-wrap" aria-hidden="true">
+                    <span className="theme-toggle-label theme-toggle-label-dark">Dark</span>
+                    <span className="theme-toggle-label theme-toggle-label-light">Light</span>
+                  </span>
+                </span>
+            </button>
             <a
               href="http://localhost:8080/h2-console"
               target="_blank"

@@ -1,8 +1,24 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Search, CornerDownLeft } from 'lucide-react';
 
 export default function SearchBar({ onSearch }) {
   const [query, setQuery] = useState('');
+  const suggestions = useMemo(
+    () => ['AI policy', 'startups', 'robotics', 'Nvidia', 'OpenAI'],
+    [],
+  );
+  const [suggestionIndex, setSuggestionIndex] = useState(0);
+  const [isFocused, setIsFocused] = useState(false);
+
+  useEffect(() => {
+    if (isFocused || query.trim()) {
+      return;
+    }
+    const timer = window.setInterval(() => {
+      setSuggestionIndex((index) => (index + 1) % suggestions.length);
+    }, 2200);
+    return () => window.clearInterval(timer);
+  }, [isFocused, query, suggestions.length]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -25,14 +41,16 @@ export default function SearchBar({ onSearch }) {
       </div>
       <form onSubmit={handleSubmit}>
         <div className="flex flex-col sm:flex-row gap-2">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-3.5 text-slate-400" size={20} />
+          <div className="flex-1 relative search-shell">
+            <Search className="absolute left-3 top-3.5 text-slate-400 search-icon" size={20} />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by keywords..."
-              className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-[var(--news-accent)] bg-white text-[0.98rem]"
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              placeholder={`Search ${suggestions[suggestionIndex]}...`}
+              className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-[var(--news-accent)] bg-white text-[0.98rem] search-input"
             />
           </div>
           <button
