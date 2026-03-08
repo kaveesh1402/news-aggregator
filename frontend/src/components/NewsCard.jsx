@@ -1,7 +1,18 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ExternalLink, Trash2, Clock3 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import SentimentBadge from './SentimentBadge';
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { type: 'spring', stiffness: 350, damping: 25 },
+  },
+};
 
 export default function NewsCard({ article, onDelete, style }) {
   const publishedValue = article.publishedAt || article.publishedDate;
@@ -19,11 +30,11 @@ export default function NewsCard({ article, onDelete, style }) {
   };
 
   return (
-    <Link to={`/article/${article.id}`} className="block">
-      <article
-        className="news-panel news-panel-soft news-panel-luxe premium-story-card rounded-xl p-5 sm:p-6 h-full cursor-pointer transition duration-300 hover:-translate-y-0.5 hover:shadow-xl news-entrance"
-        style={style}
-      >
+    <motion.div variants={itemVariants} className="block">
+      <Link to={`/article/${article.id}`} className="block h-full">
+        <article
+          className="news-panel news-panel-soft news-panel-luxe premium-story-card rounded-xl p-5 sm:p-6 h-full cursor-pointer hover-lift"
+        >
         <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-5">
           {article.imageUrl ? (
             <div className="overflow-hidden rounded-xl border border-slate-200 h-full">
@@ -82,7 +93,8 @@ export default function NewsCard({ article, onDelete, style }) {
             </div>
           </div>
         </div>
-      </article>
-    </Link>
+        </article>
+      </Link>
+    </motion.div>
   );
 }

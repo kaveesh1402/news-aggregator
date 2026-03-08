@@ -29,3 +29,81 @@ Backend APIs (NewsAgg)
                                                                                                                                                          
   - GET https://api.thenewsapi.com/v1/news/top                                                                                                           
     Params used by your app: api_token, locale, language, categories, limit, pagestop
+
+
+
+     ### What’s now included (mapped to your requirements)                                                                                                
+                                                                                                                                                       
+  1. Premium animated theme toggle                                                                                                                     
+                                                                                                                                                       
+  - Already upgraded earlier with smooth animated sun/moon morph + animated dark/light labels.                                                         
+                                                                                                                                                       
+  2. Ambient AI gradient background                                                                                                                    
+                                                                                                                                                       
+  - Added .ambient-canvas + animated .ambient-gradient-layer with slow drifting radial glows (ambient-drift).                                          
+                                                                                                                                                       
+  3. Advanced card interactions                                                                                                                        
+                                                                                                                                                       
+  - Enhanced hover lift/shadow + GPU transforms + smoother transitions on story cards and panels.                                                      
+                                                                                                                                                       
+  4. Skeleton loading system                                                                                                                           
+                                                                                                                                                       
+  - Existing skeletons retained and polished with shimmer and transitions.                                                                             
+                                                                                                                                                       
+  5. Micro-interactions                                                                                                                                
+                                                                                                                                                       
+  - Button hover scale/elevation.                                                                                                                      
+  - Refresh icon still rotates while loading (animate-spin).                                                                                           
+  - Smooth filter/button transitions.
+  - Progress bars animate width.                                                                                                                       
+                                                                                                                                                       
+  6. Glassmorphism panels                                                                                                                              
+                                                                                                                                                       
+  - Existing glassmorphism styles preserved/enhanced with blur/transparency/depth.                                                                     
+                                                                                                                                                       
+  7. Animated news ticker                                                                                                                              
+                                                                                                                                                       
+  - Continuous smooth scroll kept, now pauses on hover (.ticker-wrap:hover .ticker-scroll).                                                            
+                                                                                                                                                       
+  8. Improved search experience                                                                                                                        
+                                                                                                                                                       
+  - Dynamic AI-style placeholder suggestions rotate:                                                                                                   
+      - Search AI policy, startups, robotics, Nvidia, OpenAI...                                                                                        
+  - Animated focus icon/state (.search-shell, .search-input).                                                                                          
+                                                                                                                                                       
+  9. Better data visualization                                                                                                                         
+                                                                                                                                                       
+  - Sentiment/category bars now animate with smooth fill transitions and gradients.                                                                    
+  - Added hover tooltips on bars with exact values.                                                                                                    
+                                                                                                                                                       
+  10. AI insights sidebar                                                                                                                              
+                                                                                                                                                       
+  - Added right-side sticky insights panel showing:                                                                                                    
+      - Trending topics (from article keywords)                                                                                                        
+      - Top mentioned companies                                                                                                                        
+      - Sentiment trend summary                                                                                                                        
+      - Category momentum bars                                                                                                                         
+                                                                                                                                                       
+  11. Typography and hierarchy                                                                                                                         
+
+  - Stronger headline scaling and tighter title spacing.                                                                                               
+  - Improved section rhythm and visual hierarchy.                                                                                                      
+                                                                                                                                                       
+  12. Smooth page animations                                                                                                                           
+                                                                                                                                                       
+  - Added staggered section reveal animation (.section-reveal + --reveal-delay).                                                                       
+                                                                                                                                                       
+  13. Layout spacing improvements                                                                                                                      
+                                                                                                                                                       
+  - Increased vertical spacing/gaps around major sections for cleaner breathing room.                                                                  
+                                                                                                                                                       
+  14. Performance and smoothness                                                                                                                       
+                                                                                                                                                       
+  - Animations rely on transform/opacity and transition tuning; added will-change where relevant.                                                      
+  - Reduced-motion handling updated.
+                                                                                                                                                       
+  ### Build verification                                                                                                                               
+                                                                                                                                                       
+  - npm run build passes successfully.                                                                                                                 
+ 
+ 

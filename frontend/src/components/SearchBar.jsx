@@ -1,8 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Search, CornerDownLeft } from 'lucide-react';
 
-export default function SearchBar({ onSearch }) {
-  const [query, setQuery] = useState('');
+export default function SearchBar({ onSearch, initialValue = '' }) {
+  const [query, setQuery] = useState(initialValue);
+  
+  useEffect(() => {
+    setQuery(initialValue);
+  }, [initialValue]);
+
   const suggestions = useMemo(
     () => ['AI policy', 'startups', 'robotics', 'Nvidia', 'OpenAI'],
     [],
@@ -22,9 +27,7 @@ export default function SearchBar({ onSearch }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (query.trim()) {
-      onSearch(query);
-    }
+    onSearch(query.trim());
   };
 
   return (
